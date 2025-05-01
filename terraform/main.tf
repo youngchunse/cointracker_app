@@ -113,3 +113,16 @@ resource "google_compute_firewall" "allow_http" {
   source_ranges = ["0.0.0.0/0"]
   target_tags = ["http-server"]
 }
+
+resource "google_compute_firewall" "allow-iap-ssh" {
+  name    = "allow-iap-ssh"
+  network = google_compute_network.vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["35.235.240.0/20"]  # Required for IAP to reach VM
+  target_tags   = ["iap-ssh"]
+}
