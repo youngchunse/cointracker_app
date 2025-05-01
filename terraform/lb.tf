@@ -5,7 +5,7 @@ resource "google_compute_backend_service" "default" {
   timeout_sec = 10
   health_checks = [google_compute_health_check.default.id]
   backend {
-    group = google_compute_region_instance_group_manager.mig.instance_group
+    group = google_compute_region_instance_group_manager.igm.instance_group
   }
 }
 
