@@ -19,8 +19,8 @@ This project deploys a Dockerized "Hello World" app on GCP using a 2-tier archit
 
 ### 1. Build & Push Docker Image
 cd app
-docker build -t gcr.io/YOUR_PROJECT_ID/hello-world:latest .
-docker push gcr.io/YOUR_PROJECT_ID/hello-world:latest
+docker build -t gcr.io/hello-world-python-app-458519/hello-world:latest .
+docker push gcr.io/hello-world-python-app-458519/hello-world:latest
 
 ### 2. Create Terraform Infrastructure
 cd terraform
