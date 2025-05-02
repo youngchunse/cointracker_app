@@ -6,6 +6,8 @@ COPY app.py .
 
 RUN pip install flask
 
-EXPOSE 5000
+ENV PORT=80
+
+EXPOSE 80
 
 CMD ["python", "app.py"]

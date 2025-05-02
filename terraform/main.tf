@@ -16,8 +16,9 @@ terraform {
 resource "google_compute_instance_template" "default" {
   name_prefix  = "docker-template"
   machine_type = "e2-micro"
-  tags         = ["http-server"]
+  tags         = ["http-server", "ssh-access"]
   region       = var.region
+  metadata     = { enable-oslogin = "TRUE" }
   metadata_startup_script = file("${path.module}/../app/startup.sh")
 
   disk {
@@ -83,10 +84,15 @@ resource "google_compute_target_http_proxy" "default" {
   url_map = google_compute_url_map.default.id
 }
 
+resource "google_compute_global_address" "default" {
+  name = "hello-world-lb-ip"
+}
 resource "google_compute_global_forwarding_rule" "default" {
   name       = "hello-world-forwarding-rule"
   port_range = "80"
   target     = google_compute_target_http_proxy.default.id
+  ip_address = google_compute_global_address.default.address
+
 }
 
 ###### Network ######
@@ -114,8 +120,8 @@ resource "google_compute_firewall" "allow_http" {
   target_tags = ["http-server"]
 }
 
-resource "google_compute_firewall" "allow-iap-ssh" {
-  name    = "allow-iap-ssh"
+resource "google_compute_firewall" "allow_ssh_from_your_ip" {
+  name    = "allow-ssh-from-your-ip"
   network = google_compute_network.vpc.name
 
   allow {
@@ -123,6 +129,8 @@ resource "google_compute_firewall" "allow-iap-ssh" {
     ports    = ["22"]
   }
 
-  source_ranges = ["35.235.240.0/20"]  # Required for IAP to reach VM
-  target_tags   = ["iap-ssh"]
+  source_ranges = ["47.156.161.48/32"]
+
+  target_tags = ["ssh-access"]
 }
+
