@@ -16,6 +16,37 @@ terraform {
 }
 
 # ----------------------------------------
+# IAM and Service Account
+# ----------------------------------------
+
+# Creates a custom service account for the VM instances
+resource "google_service_account" "custom_service_account" {
+  account_id   = "custom-vm-sa"
+  display_name = "Custom VM Service Account"
+}
+
+# Creates a custom service account for the instances
+resource "google_project_iam_member" "custom_service_account_role" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
+}
+
+# Allow pulling images from GCR
+resource "google_project_iam_member" "gcr_pull" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
+}
+
+# Required for interacting with Container Registry or Artifact Registry
+resource "google_project_iam_member" "artifact_registry_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
+}
+
+# ----------------------------------------
 # Compute Engine - Instance Template
 # ----------------------------------------
 
@@ -68,7 +99,11 @@ resource "google_compute_region_instance_group_manager" "igm" {
   target_size = 2
   auto_healing_policies {
     health_check      = google_compute_health_check.default.id
-    initial_delay_sec = 60
+    initial_delay_sec = 180
+  }
+  named_port {
+    name = "http"
+    port = 80
   }
 }
 
@@ -82,6 +117,7 @@ resource "google_compute_health_check" "default" {
 
   http_health_check {
     port = 80
+    request_path = "/"
   }
 
   check_interval_sec  = 5
@@ -104,7 +140,10 @@ resource "google_compute_backend_service" "default" {
   backend {
     group = google_compute_region_instance_group_manager.igm.instance_group
   }
-  depends_on = [google_compute_health_check.default]
+  depends_on = [
+    google_compute_health_check.default,
+    google_compute_region_instance_group_manager.igm
+  ]
 }
 
 # URL map to route requests to the backend service
@@ -178,31 +217,3 @@ resource "google_compute_firewall" "allow_ssh_from_your_ip" {
 
   target_tags = ["ssh-access"]
 }
-
-
-# ----------------------------------------
-# IAM and Service Account
-# ----------------------------------------
-
-# Creates a custom service account for the instances
-resource "google_project_iam_member" "custom_service_account_role" {
-  project = var.project_id
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
-}
-
-# Allow pulling images from GCR
-resource "google_project_iam_member" "gcr_pull" {
-  project = var.project_id
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
-}
-
-# Required for interacting with Container Registry or Artifact Registry
-resource "google_project_iam_member" "artifact_registry_reader" {
-  project = var.project_id
-  role    = "roles/artifactregistry.reader"
-  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
-}
-
-
