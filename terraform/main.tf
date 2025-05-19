@@ -31,6 +31,11 @@ resource "google_compute_instance_template" "default" {
     subnetwork = google_compute_subnetwork.subnet.id
     access_config {}
   }
+
+  service_account {
+    email  = google_service_account.custom_service_account.email
+    scopes = ["cloud-platform"]
+  }
 }
 
 resource "google_compute_region_instance_group_manager" "igm" {
@@ -133,4 +138,27 @@ resource "google_compute_firewall" "allow_ssh_from_your_ip" {
 
   target_tags = ["ssh-access"]
 }
+
+
+###### IAM ######
+resource "google_project_iam_member" "custom_service_account_role" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
+}
+
+# Allow pulling images from GCR
+resource "google_project_iam_member" "gcr_pull" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
+}
+
+# Required for interacting with Container Registry or Artifact Registry
+resource "google_project_iam_member" "artifact_registry_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.custom_service_account.email}"
+}
+
 

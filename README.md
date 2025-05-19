@@ -18,9 +18,17 @@ This project deploys a Dockerized "Hello World" app on GCP using a 2-tier archit
 ## Steps
 
 ### 1. Build & Push Docker Image
+Test Locally
 ```bash
 cd app
-docker build -t gcr.io/hello-world-python-app-458519/hello-world:latest .
+docker build -t hello-world-local .
+docker run -d -p 8080:80 hello-world-local
+curl http://localhost:8080  # Should print Hello World
+```
+
+Push to GCR
+```bash
+docker tag hello-world-local gcr.io/hello-world-python-app-458519/hello-world:latest
 docker push gcr.io/hello-world-python-app-458519/hello-world:latest
 ```
 
