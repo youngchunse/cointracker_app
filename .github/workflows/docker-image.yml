@@ -1,0 +1,30 @@
+name: Build and Push Docker Image to Google Artifact Registry
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_URI=us-central1-docker.pkg.dev/hello-world-python-app-458519/my-docker-repo/hello-world:$GITHUB_SHA
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
