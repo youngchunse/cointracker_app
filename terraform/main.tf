@@ -99,7 +99,7 @@ resource "google_compute_region_instance_group_manager" "igm" {
   target_size = 2
   auto_healing_policies {
     health_check      = google_compute_health_check.default.id
-    initial_delay_sec = 180
+    initial_delay_sec = 360
   }
   named_port {
     name = "http"
