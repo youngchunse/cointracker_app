@@ -58,7 +58,7 @@ resource "google_compute_instance_template" "default" {
   region       = var.region
 
   # Enables OS Login for IAM-based SSH access
-  metadata     = { enable-oslogin = "TRUE" }
+  metadata = { enable-oslogin = "TRUE" }
 
   # Runs this startup script on instance boot
   metadata_startup_script = file("${path.module}/../app/startup.sh")
@@ -68,7 +68,7 @@ resource "google_compute_instance_template" "default" {
     auto_delete  = true
     boot         = true
     source_image = "debian-cloud/debian-11"
-    }
+  }
 
   # Network interface with access config for public IP
   network_interface {
@@ -116,7 +116,7 @@ resource "google_compute_health_check" "default" {
   name = "http-health-check"
 
   http_health_check {
-    port = 80
+    port         = 80
     request_path = "/"
   }
 
@@ -132,10 +132,10 @@ resource "google_compute_health_check" "default" {
 
 # Backend service for the load balancer
 resource "google_compute_backend_service" "default" {
-  name        = "hello-world-backend"
-  port_name   = "http"
-  protocol    = "HTTP"
-  timeout_sec = 10
+  name          = "hello-world-backend"
+  port_name     = "http"
+  protocol      = "HTTP"
+  timeout_sec   = 10
   health_checks = [google_compute_health_check.default.id]
   backend {
     group = google_compute_region_instance_group_manager.igm.instance_group
@@ -154,7 +154,7 @@ resource "google_compute_url_map" "default" {
 
 # HTTP proxy that uses the URL map
 resource "google_compute_target_http_proxy" "default" {
-  name   = "hello-world-http-proxy"
+  name    = "hello-world-http-proxy"
   url_map = google_compute_url_map.default.id
 }
 
@@ -178,7 +178,7 @@ resource "google_compute_global_forwarding_rule" "default" {
 
 # Creates a custom VPC network
 resource "google_compute_network" "vpc" {
-  name = "hello-world-vpc"
+  name                    = "hello-world-vpc"
   auto_create_subnetworks = false
 }
 
@@ -200,7 +200,7 @@ resource "google_compute_firewall" "allow_http" {
     ports    = ["80"]
   }
   source_ranges = ["0.0.0.0/0"]
-  target_tags = ["http-server"]
+  target_tags   = ["http-server"]
 }
 
 # Firewall rule to allow SSH only from a specific IP
