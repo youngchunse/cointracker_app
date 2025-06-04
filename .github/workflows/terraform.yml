@@ -18,21 +18,27 @@ jobs:
     defaults:
       run:
         shell: bash
-
+        working-directory: terraform
+        
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
     - name: Terraform Init
       run: terraform init
-      working-directory: terraform
 
     - name: Terraform Format
       run: terraform fmt -check
-      working-directory: terraform
 
     - name: Terraform Plan
       run: terraform plan -input=false
-      working-directory: terraform
 
